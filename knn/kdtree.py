@@ -83,17 +83,24 @@ class KDTree:
         return node
 
     # Visualize
-    def plot_2d_tree (self, xlow, xhigh, ylow, yhigh):
-        _plot_2d_tree_recursive (self.tree, xlow, xhigh, ylow, yhigh)
+    def plot_2d_tree (self, x_range, y_range):
+        _plot_2d_tree_recursive (self.tree, x_range, y_range)
 
 # Subroutine method to recursive
-def _plot_2d_tree_recursive (node, xlow, xhigh, ylow, yhigh, ax=None):
+def _plot_2d_tree_recursive (node, x_range, y_range, ax=None):
     if node == None:
         return;
 
     dim, = node.x.shape
     if dim != 2:
         warnings.warn ("Dimension mismatch")
+        return
+
+    if len (x_range) != 2:
+        warinigs.warn ("Dimension of x_range mismatch")
+        return
+    if len (y_range) != 2:
+        warinigs.warn ("Dimension of y_range mismatch")
         return
 
     if ax == None:
@@ -104,13 +111,15 @@ def _plot_2d_tree_recursive (node, xlow, xhigh, ylow, yhigh, ax=None):
 
     line = np.ones ((2,)) * node.x[split_axis]
     if split_axis==0:
-        ax.plot (line, [ylow, yhigh], color=cmap(node.depth%12))
-        _plot_2d_tree_recursive (node.left, xlow, node.x[split_axis], ylow, yhigh, ax)
-        _plot_2d_tree_recursive (node.right, node.x[split_axis], xhigh, ylow, yhigh, ax)
+        ax.plot (line, y_range, color=cmap(node.depth%12))
+        m_range = [x_range[0], node.x[split_axis], x_range[1]]
+        _plot_2d_tree_recursive (node.left, m_range[:2], y_range, ax)
+        _plot_2d_tree_recursive (node.right, m_range[1:], y_range, ax)
     else:
-        ax.plot ([xlow, xhigh], line, color=cmap(node.depth%12))
-        _plot_2d_tree_recursive (node.left, xlow, xhigh, ylow, node.x[split_axis], ax)
-        _plot_2d_tree_recursive (node.right, xlow, xhigh, node.x[split_axis], yhigh, ax)
+        ax.plot (x_range, line, color=cmap(node.depth%12))
+        m_range = [y_range[0], node.x[split_axis], y_range[1]]
+        _plot_2d_tree_recursive (node.left, x_range, m_range[:2], ax)
+        _plot_2d_tree_recursive (node.right, x_range, m_range[1:], ax)
 
     plt.plot (node.x[0], node.x[1], 'xk')
     plt.xlim ([-1,1])
@@ -123,5 +132,5 @@ if __name__ == '__main__':
     data = np.random.rand (8,2) * 2 - 1
     tree = KDTree (data)
     tree.tree.print_tree ()
-    tree.plot_2d_tree (-1,1,-1,1)
+    tree.plot_2d_tree ([-1,1],[-1,1])
     plt.show()
