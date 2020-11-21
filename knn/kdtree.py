@@ -89,7 +89,7 @@ class KDTree:
         return node
 
     def query (self, data, k=1):
-        
+       return _search_recursive (self.tree, data, k)
 
     # print
     def print_tree (self):
@@ -102,7 +102,7 @@ class KDTree:
 
 class Distance:
     @classmethod
-    def distance (p1, p2):
+    def distance (self, p1, p2):
         """
         Euclidian distance
 
@@ -112,7 +112,64 @@ class Distance:
         """
         return np.sum ((p1-p2)**2)
 
-# Subroutine method to recursive
+# Subroutine function
+def _search_recursive (node, data, k=1, datalist=np.empty(0), dists=np.empty(0)):
+    if node==None:
+        return
+
+    dim = node.x.size
+    nodedata = node.x.reshape ((dim,))
+
+    if data.size != dim:
+        raise ValueError ("Dimension mismatch")
+    data = data.reshape ((dim,))
+
+    point = node.x
+    dist = Distance.distance (point, data)
+    
+    # Update the k nearest neighbors
+    # TODO:
+    # This conditional branch is so ugly
+    # Need to introduce a state pattern
+    if datalist.size==0 or dists.size==0:
+        datalist = data.reshape((1,dim))
+        dists = np.hstack ([dists, dist])
+        
+    elif len(datalist)==len(dists) and len(datalist) < k:
+        dists = np.hstack ([dists, dist])
+        datalist = np.vstack ([datalist, nodedata])
+
+    elif len(datalist)==len(dists) and len(datalist) >= k:
+        argmaxdist = np.argmax (dists)
+        if dist < dists[argmaxdist]:
+            dists[argmaxdist] = dist
+            datalist[argmaxdist,:] = nodedata
+
+    else:
+        raise ValueError ("Dimension msimatch")
+
+    # recursively search
+    if node.is_leaf:
+        return datalist, dists
+
+    split_axis = node.depth % dim
+    # 多次元の場合ここはバグのもとな気がする
+    search_node = node.right if data[split_axis]>nodedata[split_axis] else node.left
+    if search_node!=None:
+        datalist, dists = _search_recursive (search_node, data, k, datalist, dists)
+
+    if len(dists)<k or dist<np.max(dists):
+        other_node = node.left if data[split_axis]>nodedata[split_axis] else node.right
+        if other_node!=None:
+            datalist, dists = _search_recursive (other_node, data, k, datalist, dists)
+
+    return datalist, dists
+
+
+
+
+
+# Subroutine function to recursive
 def _plot_2d_tree_recursive (node, x_range, y_range, ax=None):
     if node == None:
         return;
@@ -155,8 +212,17 @@ def _plot_2d_tree_recursive (node, x_range, y_range, ax=None):
 
 # plot kd tree
 if __name__ == '__main__':
-    data = np.random.rand (8,2) * 2 - 1
+    data = np.random.rand (10,2) * 2 - 1
     tree = KDTree (data)
-    tree.tree.print_node ()
-    tree.plot_2d_tree ([-1,1],[-1,1])
+    #tree.tree.print_node ()
+    #tree.plot_2d_tree ([-1,1],[-1,1])
+    plt.plot (data[:,0], data[:,1], 'kx')
+    query = np.random.rand (2,)
+    print (query)
+    plt.plot (query[0], query[1,], 'or')
+    datalist, _ = tree.query (query, k=3)
+    print (datalist)
+    for p in datalist:
+        plt.plot ([query[0], p[0]], [query[1], p[1]], 'r--')
+        # plt.plot (p[0], p[1], 'ok')
     plt.show()
