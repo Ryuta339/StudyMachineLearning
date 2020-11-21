@@ -110,7 +110,7 @@ class Distance:
             Create abstract distance class
             and create concrete (Euclidean or other) distance class
         """
-        return np.sum ((p1-p2)**2)
+        return np.sqrt(np.sum ((p1-p2)**2))
 
 # Subroutine function
 def _search_recursive (node, data, k=1, datalist=np.empty(0), dists=np.empty(0)):
@@ -132,7 +132,7 @@ def _search_recursive (node, data, k=1, datalist=np.empty(0), dists=np.empty(0))
     # This conditional branch is so ugly
     # Need to introduce a state pattern
     if datalist.size==0 or dists.size==0:
-        datalist = data.reshape((1,dim))
+        datalist = nodedata.reshape((1,dim))
         dists = np.hstack ([dists, dist])
         
     elif len(datalist)==len(dists) and len(datalist) < k:
@@ -158,15 +158,12 @@ def _search_recursive (node, data, k=1, datalist=np.empty(0), dists=np.empty(0))
     if search_node!=None:
         datalist, dists = _search_recursive (search_node, data, k, datalist, dists)
 
-    if len(dists)<k or dist<np.max(dists):
+    if len(dists)<k or dist<=np.max(dists):
         other_node = node.left if data[split_axis]>nodedata[split_axis] else node.right
         if other_node!=None:
             datalist, dists = _search_recursive (other_node, data, k, datalist, dists)
 
     return datalist, dists
-
-
-
 
 
 # Subroutine function to recursive
@@ -220,9 +217,16 @@ if __name__ == '__main__':
     query = np.random.rand (2,)
     print (query)
     plt.plot (query[0], query[1,], 'or')
-    datalist, _ = tree.query (query, k=3)
-    print (datalist)
-    for p in datalist:
+    datalist, dists = tree.query (query, k=3)
+    for idx, p in enumerate (datalist):
         plt.plot ([query[0], p[0]], [query[1], p[1]], 'r--')
         # plt.plot (p[0], p[1], 'ok')
+
+    thetas = np.linspace (0,2*3.14159,100)
+    r = np.zeros ((2,100))
+    r[0,:] = np.max(dists) * np.cos(thetas) + query[0]
+    r[1,:] = np.max(dists) * np.sin(thetas) + query[1]
+    plt.plot (r[0,:], r[1,:])
+    plt.xlim ([-1.1,1.1])
+    plt.ylim ([-1.1,1.1])
     plt.show()
