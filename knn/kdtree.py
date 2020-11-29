@@ -212,7 +212,8 @@ if __name__ == '__main__':
     data = np.random.rand (10,2) * 2 - 1
     tree = KDTree (data)
     #tree.tree.print_node ()
-    #tree.plot_2d_tree ([-1,1],[-1,1])
+    tree.plot_2d_tree ([-1,1],[-1,1])
+    #plt.show ()
     plt.plot (data[:,0], data[:,1], 'kx')
     query = np.random.rand (2,)
     print (query)
