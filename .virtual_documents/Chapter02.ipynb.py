@@ -274,7 +274,7 @@ mglearn.plots.plot_ridge_n_samples()
 
 
 from IPython.display import Image, display_png
-display_png(Image("20160706172820.png"))     # https://jojoshin.hatenablog.com/entry/2016/07/06/180923
+display_png(Image("figures/chapter02/20160706172820.png"))     # https://jojoshin.hatenablog.com/entry/2016/07/06/180923
 
 
 from sklearn.linear_model import Lasso
